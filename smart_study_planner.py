@@ -1,6 +1,7 @@
 import html
 import streamlit as st
 from datetime import datetime, time
+from pathlib import Path
 from textwrap import dedent
 
 from models import Task, TimeSlot
@@ -20,7 +21,7 @@ from algo_suggest import suggest_extra_slots
 
 st.set_page_config(
     page_title="Smart Study Planner",
-    page_icon="📚",
+    page_icon=Path("assets/calendar-check.svg"),
     layout="wide",
     initial_sidebar_state="collapsed",
 )
