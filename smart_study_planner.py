@@ -937,7 +937,7 @@ if st.session_state.tasks:
             render_task_card(task)
 
         with delete_col:
-            if st.button("x", key=f"delete_task_{task.id}", help="Remove task", type="tertiary"):
+            if st.button("✖", key=f"delete_task_{task.id}", help="Remove task", type="tertiary"):
                 delete_task(task.id)
                 st.rerun()
 else:
@@ -1000,7 +1000,7 @@ if st.session_state.slots:
             render_slot_card(slot, index + 1)
 
         with delete_col:
-            if st.button("x", key=f"delete_slot_{index}", help="Remove available slot", type="tertiary"):
+            if st.button("✖", key=f"delete_slot_{index}", help="Remove available slot", type="tertiary"):
                 delete_slot(index)
                 st.rerun()
 else:
