@@ -620,13 +620,10 @@ def inject_css():
             div[data-testid="stButton"] button[data-testid="stBaseButton-tertiary"] p {
                 margin: 0 !important;
                 padding: 0 !important;
-                line-height: 1 !important;
 
                 display: flex !important;
                 align-items: center !important;
                 justify-content: center !important;
-
-                transform: translateY(-1px);
             }
 
             div[data-testid="stButton"] button[data-testid="stBaseButton-tertiary"]:hover {
