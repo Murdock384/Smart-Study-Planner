@@ -10,7 +10,7 @@ from algo_priority import (
     calculate_priority_scores,
     calculate_available_minutes_before_deadline,
 )
-from algo_greedy import greedy_split_scheduling
+from algo_greedy import clean_and_merge_time_slots, greedy_split_scheduling
 from algo_suggest import suggest_extra_slots
 
 
@@ -679,6 +679,36 @@ def delete_slot(slot_index):
         st.session_state.slots.pop(slot_index)
         st.session_state.plan_result = None
 
+
+def normalize_task_name(name):
+    return name.strip().casefold()
+
+
+def task_name_already_exists(name):
+    normalized_name = normalize_task_name(name)
+
+    return any(
+        normalize_task_name(task.name) == normalized_name
+        for task in st.session_state.tasks
+    )
+
+
+def has_identical_slot(start, end):
+    return any(
+        slot.start == start and slot.end == end
+        for slot in st.session_state.slots
+    )
+
+
+def add_or_merge_slot(start, end):
+    previous_count = len(st.session_state.slots)
+
+    st.session_state.slots = clean_and_merge_time_slots(
+        st.session_state.slots + [TimeSlot(start, end)]
+    )
+
+    return len(st.session_state.slots) < previous_count + 1
+
 # ============================================================
 # UI helpers
 # ============================================================
@@ -907,14 +937,18 @@ with st.container(border=True):
         submitted_task = st.form_submit_button("Add task", width='stretch')
 
         if submitted_task:
-            if not task_name.strip():
+            cleaned_task_name = task_name.strip()
+
+            if not cleaned_task_name:
                 st.error("Task name cannot be empty.")
+            elif task_name_already_exists(cleaned_task_name):
+                st.error("Task names must be unique. Please use a different name.")
             else:
                 deadline = datetime.combine(deadline_date, deadline_time)
 
                 task = Task(
                     id=st.session_state.next_task_id,
-                    name=task_name.strip(),
+                    name=cleaned_task_name,
                     duration_minutes=int(duration_hours * 60),
                     deadline=deadline,
                     difficulty=difficulty,
@@ -983,10 +1017,16 @@ with st.container(border=True):
 
             if end <= start:
                 st.error("End time must be after start time.")
+            elif has_identical_slot(start, end):
+                st.error("This available slot already exists.")
             else:
-                st.session_state.slots.append(TimeSlot(start, end))
+                merged = add_or_merge_slot(start, end)
                 st.session_state.plan_result = None
-                st.success("Available slot added.")
+
+                if merged:
+                    st.success("Overlapping available slots were merged.")
+                else:
+                    st.success("Available slot added.")
 
 if st.session_state.slots:
     for index, slot in enumerate(st.session_state.slots):
