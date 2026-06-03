@@ -96,10 +96,11 @@ def greedy_split_scheduling(scored_tasks, available_slots):
     Tasks that cannot be fully scheduled before their deadline are returned
     as unfinished for Algorithm 3 to handle.
 
-    Time complexity: O(T log T + T*S)
-    T = number of tasks (heap build and pop: T log T)
-    S = number of available slots (scheduling loop: T*S — slot_index
-    resets to 0 for each task, so every task rescans up to S slots)
+    Time complexity: O(S log S + T log T + T*S)
+    S log S — clean_and_merge_time_slots sorts the available slots once.
+    T log T — each of the T heap push/pop operations sifts through log T levels.
+    T*S   — the scheduling loop: slot_index resets to 0 for every task,
+            so each task rescans up to S slots.
 
     Space complexity: O(T + S)
     T for the heap, S for the free_slots list.
