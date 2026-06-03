@@ -3,15 +3,14 @@ from utils import minutes_between
 from dataclasses import replace
 from datetime import datetime
 
-
 def get_planning_start(available_slots):
     """
     Uses the earliest user-provided available slot as the planning reference.
-    This keeps the demo deterministic instead of depending too much on the real clock.
+    In the case there are no available slots, it defaults to the current time to not break the 
+    priority scoring algorithm.
     """
     if available_slots:
         return min(slot.start for slot in available_slots)
-
     return datetime.now()
 
 
@@ -19,12 +18,12 @@ def calculate_available_minutes_before_deadline(task, available_slots):
     """
     Calculates how many minutes of the user's provided availability exist
     before a task's deadline.
-    """
-    from algo_greedy import clean_and_merge_time_slots
 
+    Expects pre-merged slots.
+    """
     total = 0
 
-    for slot in clean_and_merge_time_slots(available_slots):
+    for slot in available_slots:
         if slot.start >= task.deadline:
             continue
 
@@ -44,15 +43,19 @@ def calculate_priority_scores(tasks, available_slots=None, planning_start=None):
     The score uses:
     1. deadline closeness,
     2. difficulty,
-    3. feasibility with the provided available slots.
+    3. feasibility estimate: time remaining before the deadline vs time needed.
 
-    If a task cannot be completed before its deadline using the provided
-    availability, its score is reduced. This prevents an impossible task from
-    blocking a task that can still be completed.
+    Note: available_slots is used only to derive planning_start (the earliest
+    available slot). The feasibility ratio itself is pure time arithmetic —
+    hours_until_deadline / hours_needed — and does not scan the slot list.
 
-    Time complexity: O(T*S)
-    T = number of tasks
-    S = number of available slots
+    If a task cannot be completed before its deadline, its score is reduced.
+    This prevents an impossible task from blocking one that can still be completed.
+
+    Time complexity: O(T + S)
+    T = number of tasks in the scoring loop.
+    S = number of available slots — get_planning_start scans them once with
+    min() to find the earliest start time.
 
     Space complexity: O(T)
     """
@@ -80,14 +83,10 @@ def calculate_priority_scores(tasks, available_slots=None, planning_start=None):
 
         difficulty_score = task.difficulty * 5
 
-        available_minutes = calculate_available_minutes_before_deadline(
-            task,
-            available_slots,
-        )
-
+        hours_needed = task.duration_minutes / 60
         feasibility_ratio = (
-            available_minutes / task.duration_minutes
-            if task.duration_minutes > 0
+            max(0, hours_until_deadline) / hours_needed
+            if hours_needed > 0
             else 0
         )
 

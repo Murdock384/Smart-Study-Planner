@@ -4,11 +4,14 @@ from utils import minutes_between, add_minutes
 class MaxHeap:
     def __init__(self):
         self.data = []
+
     def is_empty(self):
         return len(self.data) == 0
+
     def push(self, task):
         self.data.append(task)
         self._sift_up(len(self.data) - 1)
+
     def pop(self):
         if self.is_empty():
             return None
@@ -16,7 +19,12 @@ class MaxHeap:
         best_task = self.data.pop()
         self._sift_down(0)
         return best_task
+
     def _is_higher_priority(self, a, b):
+        """
+        Compares two tasks based on priority, deadline, difficulty, and duration and
+        returns True if a has higher priority than b.
+        """
         if a.priority != b.priority:
             return a.priority > b.priority
         if a.deadline != b.deadline:
@@ -26,6 +34,7 @@ class MaxHeap:
         if a.duration_minutes != b.duration_minutes:
             return a.duration_minutes < b.duration_minutes
         return a.id < b.id
+
     def _sift_up(self, index):
         while index > 0:
             parent = (index - 1) // 2
@@ -34,6 +43,7 @@ class MaxHeap:
                 index = parent
             else:
                 break
+
     def _sift_down(self, index):
         size = len(self.data)
         while True:
@@ -49,14 +59,20 @@ class MaxHeap:
                 index = best
             else:
                 break
+            
     def _swap(self, i, j):
         self.data[i], self.data[j] = self.data[j], self.data[i]
 
 def clean_and_merge_time_slots(slots):
+    """
+    Creates a copy of the provided slots, sorts them by start time,
+    and merges any overlapping or adjacent intervals into a single slot.
+
+    Time complexity: O(S log S) — dominated by the sort.
+    Space complexity: O(S) — a fresh list is allocated and returned.
+    """
     cleaned = []
     for slot in slots:
-        if slot.end <= slot.start:
-            continue
         cleaned.append(TimeSlot(slot.start, slot.end))
     cleaned.sort(key=lambda slot: slot.start)
     merged = []
@@ -72,6 +88,23 @@ def clean_and_merge_time_slots(slots):
     return merged
 
 def greedy_split_scheduling(scored_tasks, available_slots):
+    """
+    Algorithm 2: Greedy Split Scheduling with Max Heap.
+
+    Pops tasks from a max heap in priority order and assigns them into
+    available time slots, splitting a task across multiple slots if needed.
+    Tasks that cannot be fully scheduled before their deadline are returned
+    as unfinished for Algorithm 3 to handle.
+
+    Time complexity: O(S log S + T log T + T*S)
+    S log S — clean_and_merge_time_slots sorts the available slots once.
+    T log T — each of the T heap push/pop operations sifts through log T levels.
+    T*S   — the scheduling loop: slot_index resets to 0 for every task,
+            so each task rescans up to S slots.
+
+    Space complexity: O(T + S)
+    T for the heap, S for the free_slots list.
+    """
     free_slots = clean_and_merge_time_slots(available_slots)
     heap = MaxHeap()
     for task in scored_tasks:
