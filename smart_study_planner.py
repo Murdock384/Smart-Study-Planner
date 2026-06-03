@@ -1099,11 +1099,12 @@ if st.session_state.plan_result:
 
         with alg_tab_1:
             score_rows = []
+            merged_display_slots = clean_and_merge_time_slots(st.session_state.slots)
 
             for task in sorted(result["scored_tasks"], key=lambda t: (-t.priority, t.deadline)):
                 available_before_deadline = calculate_available_minutes_before_deadline(
                     task,
-                    st.session_state.slots,
+                    merged_display_slots,
                 )
 
                 score_rows.append(
@@ -1161,17 +1162,21 @@ if st.session_state.plan_result:
         st.markdown(
             """
             **Algorithm 1: Feasibility-Aware Deadline-Weighted Priority Scoring**  
-            Time: `O(T*S)` because every task checks the available slots before its deadline.  
+            Time: `O(T)` — one pass over T tasks using only arithmetic (deadline distance vs task duration). No slot scanning.  
             Space: `O(T)` for the scored task list.
 
             **Algorithm 2: Greedy Split Scheduling with Max Heap**  
-            Time: `O(T log T + T*S)`, where `T` is tasks and `S` is available slots.  
-            The `T log T` part comes from heap insertion/removal. The `T*S` part comes from checking available slots.
+            Time: `O(T log T + T·S)`, where `T` is tasks and `S` is available slots.  
+            `T log T` comes from heap insertions/removals (each sift traverses at most log T levels).  
+            `T·S` comes from the scheduling loop — slot_index resets to 0 for every task, so each task rescans up to S slots.  
+            Space: `O(T + S)` for the heap and the free slots list.
 
             **Algorithm 3: Suggested Slot Generation**  
-            Time: `O(U*D*P)`, where `U` is unfinished tasks, `D` is days searched, and `P` is scheduled parts checked for overlaps.
+            Time: `O(U·P²)` worst case, where `U` is unfinished tasks and `P` is scheduled parts.  
+            Each backward search jump costs O(P) to scan for conflicts, and there can be up to P jumps per task.  
+            Space: `O(P + U)` for the occupied list and suggestions.
 
-            **Primary bottleneck:** Algorithm 2, because scheduling may need to check many tasks against many available slots.
+            **Primary bottleneck:** Algorithm 2's scheduling loop at `O(T·S)` — the point where both input dimensions multiply against each other.
             """
         )
 else:
