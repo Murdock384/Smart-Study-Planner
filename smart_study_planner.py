@@ -401,18 +401,22 @@ def inject_css():
 
                 .plan-card {
                     border: 1px solid var(--border);
-                    background: rgba(15, 23, 42, 0.82);
                     border-radius: 18px;
                     padding: 1rem 1.05rem;
                     margin-bottom: 0.8rem;
+                    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.12);
                 }
 
                 .plan-card.scheduled {
                     border-left: 4px solid var(--accent);
+                    background:
+                        linear-gradient(135deg, rgba(56, 189, 248, 0.16), rgba(15, 23, 42, 0.82));
                 }
 
                 .plan-card.suggested {
                     border-left: 4px solid var(--warning);
+                    background:
+                        linear-gradient(135deg, rgba(251, 191, 36, 0.16), rgba(15, 23, 42, 0.82));
                 }
 
                 .plan-layout {
@@ -874,7 +878,6 @@ initialize_state()
 render_html(
     """
     <div class="hero">
-        <div class="eyebrow">Algorithms in Data Science</div>
         <div class="title">Smart Study Planner</div>
         <div class="subtitle">
             Add tasks, add availability, and generate a study plan.
