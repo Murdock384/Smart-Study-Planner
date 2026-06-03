@@ -1162,18 +1162,20 @@ if st.session_state.plan_result:
         st.markdown(
             """
             **Algorithm 1: Feasibility-Aware Deadline-Weighted Priority Scoring**  
-            Time: `O(T)` — one pass over T tasks using only arithmetic (deadline distance vs task duration). No slot scanning.  
+            Time: `O(T + S)` — `S` for a single `min()` scan over available slots to find planning_start, then one pass over `T` tasks using only arithmetic (deadline distance vs task duration).  
             Space: `O(T)` for the scored task list.
 
             **Algorithm 2: Greedy Split Scheduling with Max Heap**  
-            Time: `O(T log T + T·S)`, where `T` is tasks and `S` is available slots.  
+            Time: `O(S log S + T log T + T·S)`, where `T` is tasks and `S` is available slots.  
+            `S log S` comes from sorting slots once in `clean_and_merge_time_slots`.  
             `T log T` comes from heap insertions/removals (each sift traverses at most log T levels).  
             `T·S` comes from the scheduling loop — slot_index resets to 0 for every task, so each task rescans up to S slots.  
             Space: `O(T + S)` for the heap and the free slots list.
 
             **Algorithm 3: Suggested Slot Generation**  
-            Time: `O(U·P²)` worst case, where `U` is unfinished tasks and `P` is scheduled parts.  
-            Each backward search jump costs O(P) to scan for conflicts, and there can be up to P jumps per task.  
+            Time: `O(U·P)`, where `U` is unfinished tasks and `P` is scheduled parts.  
+            `occupied` is kept sorted via `insort`, so binary search finds window boundaries in `O(log P)` per task.  
+            The backwards gap walk is `O(k)` where `k ≤ P`. Inserting a confirmed suggestion is `O(P)` (list shift).  
             Space: `O(P + U)` for the occupied list and suggestions.
 
             **Primary bottleneck:** Algorithm 2's scheduling loop at `O(T·S)` — the point where both input dimensions multiply against each other.
