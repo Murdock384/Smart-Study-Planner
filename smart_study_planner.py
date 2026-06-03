@@ -620,13 +620,10 @@ def inject_css():
             div[data-testid="stButton"] button[data-testid="stBaseButton-tertiary"] p {
                 margin: 0 !important;
                 padding: 0 !important;
-                line-height: 1 !important;
 
                 display: flex !important;
                 align-items: center !important;
                 justify-content: center !important;
-
-                transform: translateY(-1px);
             }
 
             div[data-testid="stButton"] button[data-testid="stBaseButton-tertiary"]:hover {
@@ -972,7 +969,7 @@ if st.session_state.tasks:
             render_task_card(task)
 
         with delete_col:
-            if st.button("x", key=f"delete_task_{task.id}", help="Remove task", type="tertiary"):
+            if st.button("✖", key=f"delete_task_{task.id}", help="Remove task", type="tertiary"):
                 delete_task(task.id)
                 st.rerun()
 else:
@@ -1041,7 +1038,7 @@ if st.session_state.slots:
             render_slot_card(slot, index + 1)
 
         with delete_col:
-            if st.button("x", key=f"delete_slot_{index}", help="Remove available slot", type="tertiary"):
+            if st.button("✖", key=f"delete_slot_{index}", help="Remove available slot", type="tertiary"):
                 delete_slot(index)
                 st.rerun()
 else:
